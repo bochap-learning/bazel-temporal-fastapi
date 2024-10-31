@@ -1,0 +1,1 @@
+ETL_ZIPCODE_TASK_QUEUE: str = "etl-zipcode-page"

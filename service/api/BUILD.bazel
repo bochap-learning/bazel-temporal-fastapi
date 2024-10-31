@@ -1,0 +1,29 @@
+load("@third_party_deps//:requirements.bzl", "requirement")
+# load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+# # load("@rules_oci//oci:defs.bzl", "oci_load")
+# load("//:py_layer.bzl", "py_oci_image")
+
+py_library(
+    name = "service_api",
+    srcs = ["server.py"],
+    deps = [
+        requirement("fastapi"),
+        requirement("pydantic"),
+        requirement("sqlmodel"),
+        "//library/storage:library_rdbms",
+        "//service/patient:service_patient_shared",
+        "//service/observation:service_observation_shared",
+        "//service/zipcode:service_zipcode_workflow"
+    ],
+    visibility = ["//visibility:public"]
+)
+
+py_binary(
+    name = "service_api_runner",
+    srcs = ["run.py"],
+    main = "run.py",
+    deps = [
+        ":service_api",
+        requirement("uvicorn"),
+    ],
+)

@@ -1,0 +1,52 @@
+load("@third_party_deps//:requirements.bzl", "requirement")
+load("//tools/runner:defs.bzl", "pytest_runner")
+
+py_library(
+    name = "service_zipcode_shared",
+    srcs = ["model.py", "shared.py"],
+    deps = [],
+    visibility = ["//visibility:public"]
+)
+
+py_library(
+    name = "service_zipcode_workflow",
+    srcs = ["workflow.py"],
+    deps = [
+        requirement("aiohttp"),
+        requirement("temporalio"),
+        requirement("psycopg2-binary"),
+        "//library/converter:library_converter",
+        "//library/orchestration:library_orchestration",
+        "//library/storage:library_rdbms",
+        "//library/storage:library_blob",
+        "//library/webclient:library_webclient",        
+        "//service/patient:service_patient_workflow",
+        "//service/observation:service_observation_workflow",
+        ":service_zipcode_shared",
+    ],
+    visibility = ["//visibility:public"]
+)
+
+pytest_runner(
+    name = "service_zipcode_workflow_test",
+    srcs = [
+        "workflow_test.py",
+    ],
+    deps = [
+        requirement("pytest-asyncio"),
+        ":service_zipcode_workflow"
+    ],
+)
+
+py_binary(
+    name = "service_zipcode_workflow_worker",
+    srcs = ["worker.py"],
+    main = "worker.py",
+    deps = [
+        requirement("temporalio"),
+        "//library/orchestration:library_orchestration",
+        "//library/storage:library_rdbms",
+        "//library/storage:library_blob",         
+        ":service_zipcode_workflow"  
+    ],
+)

@@ -1,0 +1,6 @@
+py_library(
+    name = "library_webclient",
+    srcs = ["rest.py"],
+    deps = [],
+    visibility = ["//visibility:public"]
+)

@@ -1,0 +1,16 @@
+load("//tools/runner:defs.bzl", "pytest_runner")
+
+py_library(
+    name = "library_converter",
+    srcs = ["memory.py"],
+    deps = [],
+    visibility = ["//visibility:public"]
+)
+
+pytest_runner(
+    name = "library_converter_test",
+    srcs = ["memory_test.py"],
+    deps = [
+        ":library_converter"
+    ]
+)

@@ -1,0 +1,29 @@
+load("@third_party_deps//:requirements.bzl", "requirement")
+load("//tools/runner:defs.bzl", "pytest_runner")
+
+py_library(
+    name = "library_orchestration",
+    srcs = [
+        "activity.py",
+        "model.py"
+    ],
+    deps = [
+        requirement("SQLAlchemy"),
+        requirement("sqlmodel"),
+        requirement("temporalio"),
+        requirement("psycopg2-binary"),
+        "//library/storage:library_rdbms",
+    ],
+    visibility = ["//visibility:public"]
+)
+
+pytest_runner(
+    name = "library_orchestration_test",
+    srcs = [
+        "activity_test.py",
+    ],
+    deps = [
+        requirement("pytest-asyncio"),
+        ":library_orchestration"
+    ]
+)

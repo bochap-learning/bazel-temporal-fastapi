@@ -1,0 +1,53 @@
+load("@third_party_deps//:requirements.bzl", "requirement")
+load("//tools/runner:defs.bzl", "pytest_runner")
+
+py_library(
+    name = "service_patient_shared",
+    srcs = [
+        "shared.py",
+        "model.py"
+    ],
+    deps = [
+        "//library/storage:library_rdbms"
+    ],
+    visibility = ["//visibility:public"]
+)
+
+py_library(
+    name = "service_patient_workflow",
+    srcs = [
+        "activity.py",
+        "extractor.py",
+    ],
+    deps = [
+        requirement("aiohttp"),
+        requirement("temporalio"),
+        requirement("psycopg2-binary"),
+        "//library/converter:library_converter",
+        "//library/orchestration:library_orchestration",
+        "//library/storage:library_rdbms",
+        "//library/storage:library_blob",
+        "//library/webclient:library_webclient",
+        ":service_patient_shared"
+    ],
+    visibility = ["//visibility:public"]
+)
+
+pytest_runner(
+    name = "service_patient_workflow_test",
+    srcs = [
+        "activity_test.py",
+        "extractor_test.py",
+    ],
+    deps = [
+        requirement("pytest-asyncio"),
+        ":service_patient_workflow"
+    ],
+    data = [":service_patient_workflow_test_data"],
+)
+
+filegroup(
+    name = "service_patient_workflow_test_data",
+    srcs = glob(["data/test/*.json"]),
+    visibility = ["//visibility:private"]
+)

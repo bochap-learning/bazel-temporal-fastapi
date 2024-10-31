@@ -1,0 +1,105 @@
+services:
+  api_db:
+    build: ./postgres-with-curl 
+    restart: always  # Always restart the container if it stops
+    environment:
+      POSTGRES_USER: bochap                   # Set the PostgreSQL username
+      POSTGRES_PASSWORD: unsecure4convience     # Set the PostgreSQL password
+      POSTGRES_DB:  api                         # Set the default database name
+    ports:
+      - "5432:5432"  # Map port 5432 on the host to port 5432 in the container
+    volumes:
+      - api_postgres:/var/lib/postgresql/data  # Persist data even if the container is removed
+    depends_on:
+      - minio      
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - 5050:80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "bochap@bochap.com"
+      PGADMIN_DEFAULT_PASSWORD: "unsecure4convience"
+  minio:
+    image: minio/minio:latest
+    command: server /data --address ":9000" --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: bochap
+      MINIO_ROOT_PASSWORD: unsecure4convience
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 1s
+    restart: always          
+  mc:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    network_mode: service:minio
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://localhost:9000 bochap unsecure4convience;
+      mc mb --ignore-existing myminio/public-bucket;
+      mc anonymous set public myminio/public-bucket;
+      "
+  temporal_db:
+    container_name: temporal-postgresql
+    restart: always  # Always restart the container if it stops
+    environment:
+      POSTGRES_PASSWORD: unsecure4convience
+      POSTGRES_USER: bochap
+      POSTGRES_DB:  temporal
+    image: postgres:latest
+    ports:
+      - 5433:5432
+    volumes:
+      - temporal-postgresql:/var/lib/postgresql/data
+  temporal:
+    container_name: temporal
+    depends_on:
+      - temporal_db
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=bochap
+      - POSTGRES_PWD=unsecure4convience
+      - POSTGRES_SEEDS=temporal_db
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    image: temporalio/auto-setup:latest
+    ports:
+      - 7233:7233
+    volumes:
+      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:latest
+    stdin_open: true
+    tty: true
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: temporalio/ui:latest
+    ports:
+      - 8080:8080
+volumes:
+  api_postgres:
+  minio_data:
+  pgadmin_data:
+  temporal-postgresql:
+  

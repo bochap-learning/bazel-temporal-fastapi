@@ -1,0 +1,6 @@
+py_library(
+    name = "library_meta",
+    srcs = ["metaclass.py"],
+    deps = [],
+    visibility = ["//visibility:public"]
+)
