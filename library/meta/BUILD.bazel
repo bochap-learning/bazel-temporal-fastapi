@@ -1,6 +1,8 @@
+load("@third_party_deps//:requirements.bzl", "requirement")
+
 py_library(
     name = "library_meta",
-    srcs = ["metaclass.py"],
-    deps = [],
+    srcs = ["metaclass.py", "env.py"],
+    deps = [requirement("python-dotenv")],
     visibility = ["//visibility:public"]
 )

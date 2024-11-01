@@ -1,6 +1,5 @@
 from typing import Any
 from temporalio import activity
-from sqlmodel import SQLModel
 from library.webclient.rest import get_to_json
 from library.converter.memory import to_csv_stringio
 from library.storage.postgres import Postgres
@@ -32,5 +31,5 @@ class LoadObservationActivity:
     async def load_observation(self, input: LoadObservationActivityInput) -> LoadObservationActivityOutput:
         activity.logger.info("Converting observation to csv")
         observation_stream = to_csv_stringio(OBSERVATION_HEADERS, input.data)
-        blob_path = self.blob.write_stringio(observation_stream, f"{input.zipcode}-{input.page}/observations.csv", self.bucket)
+        blob_path = self.blob.write_stringio(observation_stream, f"{input.zipcode}-{input.page}/observations.csv")
         return LoadObservationActivityOutput(blob_path)

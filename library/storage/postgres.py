@@ -1,4 +1,3 @@
-from sqlalchemy import text
 from sqlmodel import SQLModel, create_engine, Session
 from library.meta.metaclass import Singleton
 

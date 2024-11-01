@@ -1,3 +1,4 @@
-exports_files([
-    "pytest_runner.py",
-])
+exports_files(
+    ["pytest_runner.py"], 
+    visibility = ["//visibility:public"]
+)

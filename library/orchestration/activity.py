@@ -1,7 +1,6 @@
 from typing import List
 from temporalio import activity
 from sqlalchemy import text
-from sqlmodel import Session
 from library.storage.postgres import Postgres
 from library.orchestration.model import CustomSqlInput
 

@@ -3,8 +3,7 @@ load("@third_party_deps//:requirements.bzl", "requirement")
 py_library(
     name = "library_rdbms",
     srcs = ["postgres.py"],
-    deps = [
-        requirement("SQLAlchemy"),        
+    deps = [     
         requirement("sqlmodel"),
         "//library/meta:library_meta",
     ],

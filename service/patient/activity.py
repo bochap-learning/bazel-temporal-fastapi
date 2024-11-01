@@ -1,6 +1,5 @@
 from typing import Any
 from temporalio import activity
-from sqlmodel import SQLModel, Session
 from library.webclient.rest import get_to_json
 from library.converter.memory import to_csv_stringio
 from library.storage.postgres import Postgres
@@ -25,7 +24,7 @@ class ExtractAndGeneratePatientActivity:
         patient_page = extract_page(raw_patient)
         patient_stream = to_csv_stringio(PATIENT_HEADERS, patient_page.records.data)
         patient_ids = [record["id"] for record in patient_page.records.data]
-        blob_path = self.blob.write_stringio(patient_stream, f"{input.zipcode}-{input.page}/patient.csv", self.bucket)
+        blob_path = self.blob.write_stringio(patient_stream, f"{input.zipcode}-{input.page}/patient.csv")
         return ExtractAndGeneratePatientActivityOutput(
             blob_path,
             patient_ids,

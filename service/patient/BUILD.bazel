@@ -41,6 +41,7 @@ pytest_runner(
     ],
     deps = [
         requirement("pytest-asyncio"),
+        "//library/meta:library_meta",
         ":service_patient_workflow"
     ],
     data = [":service_patient_workflow_test_data"],

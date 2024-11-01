@@ -1,12 +1,13 @@
 import pytest
 from temporalio.testing import ActivityEnvironment
+from library.meta.env import get_api_db_conn
 from library.storage.postgres import Postgres
 from library.orchestration.model import CustomSqlInput
 from library.orchestration.activity import CustomSqlActivity
 
 @pytest.mark.asyncio
 async def test_custom_sql_activity_success():
-    db = Postgres("postgresql://bochap:unsecure4convience@localhost:5432/api")    
+    db = Postgres(get_api_db_conn())
     activity_environment = ActivityEnvironment()
     activity = CustomSqlActivity(db)
     try:

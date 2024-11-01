@@ -1,7 +1,4 @@
 load("@third_party_deps//:requirements.bzl", "requirement")
-# load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
-# # load("@rules_oci//oci:defs.bzl", "oci_load")
-# load("//:py_layer.bzl", "py_oci_image")
 
 py_library(
     name = "service_api",
@@ -10,6 +7,7 @@ py_library(
         requirement("fastapi"),
         requirement("pydantic"),
         requirement("sqlmodel"),
+        "//library/meta:library_meta",
         "//library/storage:library_rdbms",
         "//service/patient:service_patient_shared",
         "//service/observation:service_observation_shared",
@@ -19,11 +17,11 @@ py_library(
 )
 
 py_binary(
-    name = "service_api_runner",
+    name = "service_api_run",
     srcs = ["run.py"],
     main = "run.py",
     deps = [
-        ":service_api",
-        requirement("uvicorn"),
+        requirement("uvicorn"),  # Assuming you're using uvicorn to run the FastAPI app
+        ":service_api", 
     ],
 )

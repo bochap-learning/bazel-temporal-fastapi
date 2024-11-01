@@ -1,11 +1,9 @@
 import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
+from library.meta.env import get_minio_configuration, get_api_db_conn, get_temporal_host
 from library.orchestration.activity import CustomSqlActivity
-from library.storage.blob_minio import (
-    MinioClient,
-    MinioStoreConfig
-)
+from library.storage.blob_minio import MinioClient
 from library.storage.postgres import Postgres
 from service.patient.activity import ExtractAndGeneratePatientActivity
 from service.observation.activity import (
@@ -17,12 +15,11 @@ from service.zipcode.workflow import ETLZipcodeWorkflow
 
 
 async def main():
-    client = await Client.connect("localhost:7233", namespace="default")
-    zipcode = "02718"
-    bucket = "public-bucket"
-    config = MinioStoreConfig("http", "localhost", "9000", "bochap", "unsecure4convience", True)
+    client = await Client.connect(get_temporal_host(), namespace="default")
+    config = get_minio_configuration()
+    bucket = config.bucket
     blob = MinioClient(config)
-    db = Postgres("postgresql://bochap:unsecure4convience@localhost:5432/api")
+    db = Postgres(get_api_db_conn())
     worker = Worker(
         client,
         task_queue = ETL_ZIPCODE_TASK_QUEUE,

@@ -1,22 +1,18 @@
 import pytest
 from temporalio.testing import ActivityEnvironment
-from library.storage.postgres import Postgres
-from library.storage.blob_minio import (
-    MinioStoreConfig,
-    MinioClient
-)
+from library.meta.env import get_minio_configuration
+from library.storage.blob_minio import MinioClient
 from service.patient.shared import get_patients_url
 from service.patient.model import (
     ExtractAndGeneratePatientActivityInput,
-    ExtractAndGeneratePatientActivityOutput
 )
 from service.patient.activity import ExtractAndGeneratePatientActivity
 
 @pytest.mark.asyncio
 async def test_extract_and_generate_patient_activity_success():
+    config = get_minio_configuration()
     zipcode = "02718"
-    bucket = "public-bucket"
-    config = MinioStoreConfig("http", "localhost", "9000", "bochap", "unsecure4convience", True)
+    bucket = config.bucket
     blob = MinioClient(config)
     activity_environment = ActivityEnvironment()
     activity = ExtractAndGeneratePatientActivity(blob, bucket)

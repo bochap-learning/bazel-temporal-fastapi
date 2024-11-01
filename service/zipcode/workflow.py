@@ -1,3 +1,4 @@
+from typing import List
 import asyncio
 from temporalio import workflow
 from temporalio.client import Client
@@ -102,7 +103,7 @@ class ETLZipcodeWorkflow:
                         start_to_close_timeout=timedelta(seconds=30)
                     )
                 ))
-            extractObservationActivityOutputs = await asyncio.gather(*subtasks)
+            extractObservationActivityOutputs: List[ExtractObservationActivityOutput] = await asyncio.gather(*subtasks)
             for extractObservationActivityOutput in extractObservationActivityOutputs:
                 if not extractObservationActivityOutput.has_data: continue
                 observation_records.append(extractObservationActivityOutput.data)                    

@@ -15,6 +15,7 @@ py_library(
         requirement("aiohttp"),
         requirement("temporalio"),
         requirement("psycopg2-binary"),
+        "//library/meta:library_meta",
         "//library/converter:library_converter",
         "//library/orchestration:library_orchestration",
         "//library/storage:library_rdbms",
