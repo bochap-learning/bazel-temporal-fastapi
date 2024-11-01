@@ -54,7 +54,8 @@ This project effectively combines these technologies to create a comprehensive d
 
 ### Prerequisites
 
-To simplify application startup, an .env file is utilized to store environment variables. This file provides necessary configurations for both the application itself and its associated Docker Compose setup.
+To simplify application startup, an .env file is utilized to store environment variables. This file provides necessary configurations for both the application itself and its associated Docker Compose setup. To run this application, the .env file will need to be created. The format and variables required can be found in [.env.template](.env.template) 
+
 
 ### Running
 
