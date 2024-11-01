@@ -8,6 +8,8 @@ To enhance data processing capabilities, the project utilizes Temporal for workf
 
 This project effectively combines these technologies to create a comprehensive data solution that is scalable, maintainable, and fault-tolerant.
 
+This application, built in less than a week, serves as a proof-of-concept, showcasing enterprise-level techniques for data processing and application development. While not production-grade, it offers valuable insights into these practices.
+
 ## Architecture
 
 ![Architecture Diagram](docs/design/images/architecture.gif)
@@ -84,6 +86,12 @@ IS_LOCAL=1 bazel run //service/api:service_api_run
 IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 ```
 
+### Swagger
+
+Once the FastAPI server is running the Swagger UI can be used to view or test the endpoints at http://HOSTNAME:PORT/docs.
+
+![Swagger UI](docs/design/images/swagger.png)
+
 ## Technologies
 
 | Technology | Requirement | Level of Usage |
@@ -104,7 +112,7 @@ This application leverages a combination of essential and optional technologies 
 
 #### Technology choices and implementation Details
 
-- **FastAPI**: application follows RESTful principles, with standard GET and POST requests for resource access, provides consumers with a familiar and intuitive interface for interacting with the API. This design also facilitates easy future enhancements and expansions as needed and fits the design of FastAPI
+- **FastAPI**: application adheres to RESTful principles, employing standard GET and POST requests for intuitive resource access. This familiar design, well-suited to FastAPI's framework,  ensures easy comprehension for consumers and facilitates future enhancements.  FastAPI's built-in features further enhance the developer experience by auto-generating Swagger documentation and providing an interactive playground for API exploration.
 - **Docker**: his project successfully containerized Postgres using Docker Compose and Dockerfiles, enabling `curl` within the Postgres container for easier deployment and standalone execution of supporting services. However, containerization of the core FastAPI application and Temporal worker failed due to challenges with Bazel rules. Addressing this containerization gap is a high priority for future development.
 - **SQLModel**: streamlined database interactions by minimizing boilerplate code for Postgres access. Its built-in ORM capabilities automatically address security concerns such as SQL injection vulnerabilities. Additionally, SQLModel offers seamless integration with FastAPI, allowing models to be returned directly as API responses with effortless field filtering.
 - **Jupyter Notebook and Pandas**: instrumental in the initial exploration and analysis of the HAPI FHIR API data. This facilitated a modular approach to implementation, allowing the code to be broken down into smaller, testable units with comprehensive unit tests for efficient implementation.
@@ -137,6 +145,7 @@ This application leverages a combination of essential and optional technologies 
         ```
 
 ### Tradeoffs
+- While the application provides a Swagger interface generated from custom defaults, the current user experience could be improved for better API comprehension.  Although not implemented here, customization of the Swagger documentation is readily achievable, offering an opportunity to enhance the consumer experience.
 - This implementation prioritizes a clear data processing workflow and efficient RDBMS interaction over comprehensive security. To maintain simplicity, security measures are streamlined, focusing on mitigating potential latency and request volume issues. Future enhancements could include stronger security with JWT and decoupling database access through microservices.
 - This implementation prioritizes straightforwardness over extreme scalability for the Get API calls. While current performance is adequate thanks to SQL indexes,  it could be further enhanced to handle very high loads.  Options include migrating resources to dedicated microservices or introducing caching mechanisms and database replicas.
 - Bazel: offers compelling advantages, but its complexity and rapidly evolving nature, coupled with occasional documentation gaps, demands a significant upfront investment in learning and knowledge sharing within development teams. This project faced challenges in Docker image creation due to recent Bazel changes. However, mastering Bazel can unlock streamlined containerization across diverse platforms, including ARM and AMD architectures.
