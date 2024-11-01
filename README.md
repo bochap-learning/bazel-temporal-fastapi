@@ -12,52 +12,7 @@ This project effectively combines these technologies to create a comprehensive d
 
 ![Architecture Diagram](docs/design/images/architecture.gif)
 
-## Getting Started
-
-### Prequisites
-
-To make it easier to run the application, an `.env` file is used to supply environment variables for running the application and also Docker compose
-
-### Running
-
-#### Standalone
-
-Running via Docker compose (**Doesn't work yet due to imaging issues**)
-```
-docker compose --env-file .env -f config/docker/docker-compose.yml up -d
-```
-
-#### Development (Requires Bazel)
-
-1. Running supporting services including Temporal Cluster, Postgres Databases and Minio
-
-```
-docker compose --env-file .env -f config/docker/docker-compose.yml up -d
-```
-
-2. Start FastAPI
-```
-IS_LOCAL=1 bazel run //service/api:service_api_run
-```
-
-3. Start Temporal Worker
-```
-IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
-```
-
-## Technologies
-
-| Technology | Required | Usage |
-|---|---|---|
-| FastAPI | Required | Exposes data using REST style. Possible improvements include adding security and making patient and observation endpoints call microservices for scability. |
-| PostgreSQL | Required | Uses SQLModel to handle CRUD operations for REST calls. Makes use of COPY from blob storage and Merge commands that reduces computation during the Zipcode ETL process. |
-| Docker | Required | Makes use of Docker compose of setting up the required supporting services. Application code imaging was unfortunately unsuccessful due to complexities introduced by Bazel  |
-| Bazel | Optional | Provided an easy way to perform bundling and dependency management. It allowed domain based code structuring. Unfortunately due to upgrades caused issues that fails the Docker containization test.  |
-| Temporal | Optional | Orchestrates asynchronous ETL processes, ensuring data reliability. The workflow management ablities provide some of the more impressive features of this applicaiton |
-| Minio | Optional | Provides scalable and efficient blob storage for handling large datasets |
-| Jupyter Notebook with Pandas | Optional | Used during prototyping to explore the HAPI FHIR api data and allowed testing code for implementation |
-
-#### Directory Structure
+### Code Structure
 
 ```bash
 .
@@ -95,40 +50,106 @@ IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
     └── runner                      # helper function to run tests
 ```
 
-### Benefits
+## Getting Started
 
-- SQLModel allowed reducing the boilerplate for data access in Postgres. The ORM allow handles security features like SQL injection automatically. The models can also return directly as FastAPI responses with fields remove easily.
-- Jupyter Notebook Pandas allowed initial research of the API data allowing implementation code to be broken into smaller parts with unit tests.
-- Minio allowed storage of processed data in CSVs which provides ability to accumulate records to be populated in a batch instead of running multiple queries that incur both latency and processing requirements on the server. This is especially beneficial for observation data which requires 1 API call per patient. This benefit is increased give that the population of a zipcode can be anywhere from 0 to more than 100,000 with an average of 9,000. Just taking an average of 10% at 1,000  will impact performance and latency. Refer to the footnote [^1]
-- Bazel allow structuring files togather in their domain folders for easily management due to code proximity. Bunding and dependency management is also easier with a single command once setup is completed.
-- Temporal is the prized Jewel of this implementation. The ability to manage workflow state allows automatic recovery if conditions are fulfil. Certain code bugs can be rerun from the failed step conserving resources to rerun from start.
-![Rerun from failed task](docs/design/images/retry-from-failure.png)
-- Temporal's workflow and activity code seperation while maintaining relationships allow the ability for queueing up tasks and running them in a concurrent manner safely. Code like the following improves performance while also allowing easy handling of rate limits. While the relationships allowed multiple complex tasks to be managd easily and also scaled by just adding more workers. Paging of results can also be easily managed by related workflows.
- ```python
+### Prerequisites
+
+To simplify application startup, an .env file is utilized to store environment variables. This file provides necessary configurations for both the application itself and its associated Docker Compose setup.
+
+### Running
+
+#### Standalone
+
+Running via Docker compose (**Actively working to resolve imaging issues that are preventing deployment through Docker Compose. This feature will be available soon.**)
+```
+docker compose --env-file .env -f config/docker/docker-compose.yml up -d
+```
+
+#### Development (Requires Bazel)
+
+1. Running supporting services (Temporal Cluster, Postgres Databases and Minio)
+
+```
+docker compose --env-file .env -f config/docker/docker-compose.yml up -d
+```
+
+2. Start FastAPI
+```
+IS_LOCAL=1 bazel run //service/api:service_api_run
+```
+
+3. Start Temporal Worker
+```
+IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
+```
+
+## Technologies
+
+| Technology | Requirement | Level of Usage |
+|---|---|---|
+|FastAPI| Required|☀️|
+|PostgreSQL| Required|☀️|
+|Docker| Required|⛅️|
+|Bazel| Optional|⛅️|
+|Temporal| Optional|☀️|
+|Minio| Optional|☀️|
+|Jupyter Notebook with Pandas| Optional|☀️|
+
+<sub>Legend: ☀️ - Fulfils requirements specified or planned usage, ⛅️ - Partially fulfils requirements specified or planned usage</sub>
+
+### Decision making process
+
+This application leverages a combination of essential and optional technologies to achieve its core functionality and offer enhanced features. This section explores the some of the technology choices or implementation details and tradeoffs associated with these details.
+
+#### Technology choices and implementation Details
+
+- **FastAPI**: application follows RESTful principles, with standard GET and POST requests for resource access, provides consumers with a familiar and intuitive interface for interacting with the API. This design also facilitates easy future enhancements and expansions as needed and fits the design of FastAPI
+- **Docker**: his project successfully containerized Postgres using Docker Compose and Dockerfiles, enabling `curl` within the Postgres container for easier deployment and standalone execution of supporting services. However, containerization of the core FastAPI application and Temporal worker failed due to challenges with Bazel rules. Addressing this containerization gap is a high priority for future development.
+- **SQLModel**: streamlined database interactions by minimizing boilerplate code for Postgres access. Its built-in ORM capabilities automatically address security concerns such as SQL injection vulnerabilities. Additionally, SQLModel offers seamless integration with FastAPI, allowing models to be returned directly as API responses with effortless field filtering.
+- **Jupyter Notebook and Pandas**: instrumental in the initial exploration and analysis of the HAPI FHIR API data. This facilitated a modular approach to implementation, allowing the code to be broken down into smaller, testable units with comprehensive unit tests for efficient implementation.
+- **Minio**: efficient blob storage facilitates batch processing of data by storing processed records in CSVs. This approach significantly reduces the server load and latency associated with individual API calls, particularly for observation data which requires fetching information per patient. Considering the wide range of population sizes per zip code (from 0 to over 100,000, with an average of 9,000. Refer to the footnote [^1]), retrieving observation data individually could severely impact performance. By leveraging Minio and batch processing, we optimize data ingestion and minimize the overhead of numerous API calls. This is further enhanced by using efficient database loading techniques like `COPY` and `MERGE`.
+- **Bazel**: facilitates a domain-driven code structure by enabling the organization of files within their respective domain folders. This enhances code manageability and improves developer understanding through proximity. Bazel also streamlines dependency management, allowing for easy bundling with a single command once the initial setup is complete.
+- **PostgreSQL**: implementation  employs a hybrid approach to database interaction. SQLModel, an ORM, simplifies common CRUD operations, schema management, and query execution while mitigating security risks like SQL injection. This significantly reduces boilerplate code and ensures efficient data access. For the ETL pipeline, which handles data extracted from the HAPI FHIR API, we opted for custom SQL statements leveraging `COPY` and `MERGE` commands. This strategic choice optimizes bulk data loading and ensures idempotent operations for robust error handling and reliable execution.  The use of custom SQL in this context is considered safe due to the pre-processing of data within the application code, minimizing vulnerabilities like SQL injection.
+- **Temporal**: the powerhouse behind this application's robust ETL processes. Its advanced workflow orchestration capabilities provide:
+    - **Asynchronous Operations and Reliability**: Temporal manages ETL tasks asynchronously, ensuring efficient resource utilization and reliable execution even with interruptions.
+    - **Fault Tolerance and Recovery**: Temporal's state management allows automatic recovery from failures, enabling seamless continuation from the point of failure and preventing unnecessary resource consumption.
+    - **Concurrency and Scalability**: Temporal's clear separation of workflow and activity logic facilitates safe concurrent execution of tasks. This enables efficient handling of rate limits and simplifies scaling by adding more workers.
+    - **Simplified Complex Workflow Management**: Temporal excels at managing complex, multi-step workflows, including those requiring paging through large datasets. This also allows paging data in the Patient API to be implemented easily
+    - **Intuitive Dashboards and Visualizations**: A well-designed UI with informative dashboards and visualizations can provide a clear overview of system health, resource utilization, and key performance indicators (KPIs). This empowers operations teams to proactively monitor and manage the application.
+    - **Alerting and Notification System**: Implementing an alerting and notification system within the UI can help operations teams stay informed about critical events, potential issues, and performance anomalies. This ensures timely intervention and prevents escalations.
+    - **Support for optional 3rd party integrations**: allows optional integrations with Elasticsearch, Grafana, and Prometheus to enhance production operations. These tools provide robust logging, monitoring, and visualization capabilities, enabling efficient troubleshooting, performance optimization, and proactive issue identification.
+    - The included images illustrate Temporal's ability to:
+        - Retry from Failure: Visualizing how Temporal automatically restarts workflows from the failed step. ![Rerun from failed task](docs/design/images/retry-from-failure.png)
+        - Maintain Data Persistence: Highlighting Temporal's ability to preserve workflow data, ensuring reliability and recoverability. ![Inserted data](docs/design/images/data-persistent.png)
+        - Enable Concurrent Execution: Showcasing Temporal's capability to manage concurrent tasks efficiently. ![Concurrent execution](docs/design/images/temporal-concurrent.png)
+        The code snippet uses a BFS-inspired approach to efficiently process API requests in micro-batches. By grabbing a small set of IDs, making concurrent API calls, and waiting for responses before repeating, it prevents API overload while maximizing efficiency. This method also simplifies the implementation of rate limiting logic.
+         ```python
+        # BFS technique
          while patient_ids:
             subtasks = []
             for _ in range(min(len(patient_ids), 5)):
                 patient_id = patient_ids.pop()
-                # process mini batches                  
-
- ```
- <table>
-    <tr>
-        <td><img src="docs/design/images/temporal-concurrent.png" alt="Rerun from failed task"/> </td>
-        <td><img src="docs/design/images/data-persistent.png" alt="Inserted data" /> </td>
-    </tr>
- </table>
+                # process mini batches by making non blocking api calls asynchronously
+            # await subtasks to be completed
+        
+        # process results for all patients
+        ```
 
 ### Tradeoffs
+- This implementation prioritizes a clear data processing workflow and efficient RDBMS interaction over comprehensive security. To maintain simplicity, security measures are streamlined, focusing on mitigating potential latency and request volume issues. Future enhancements could include stronger security with JWT and decoupling database access through microservices.
+- This implementation prioritizes straightforwardness over extreme scalability for the Get API calls. While current performance is adequate thanks to SQL indexes,  it could be further enhanced to handle very high loads.  Options include migrating resources to dedicated microservices or introducing caching mechanisms and database replicas.
+- Bazel: offers compelling advantages, but its complexity and rapidly evolving nature, coupled with occasional documentation gaps, demands a significant upfront investment in learning and knowledge sharing within development teams. This project faced challenges in Docker image creation due to recent Bazel changes. However, mastering Bazel can unlock streamlined containerization across diverse platforms, including ARM and AMD architectures.
+- While Temporal and Minio offer compelling advantages, they introduce new systems requiring ongoing maintenance.  Minio's compatibility with S3, GCP Cloud Storage, or Azure Blobs provides flexibility.  Temporal's cloud-managed solution for clusters (excluding workers) offers an alternative to self-hosting, trading higher operating expenses for reduced staffing costs associated with complex on-premise deployments.
+- To fully leverage Temporal's capabilities, developers need a solid understanding of its concepts and best practices, including the crucial ability to design idempotent workflows. This requires developers to adopt Temporal's opinions and patterns, but in return, they gain a significant reduction in writing and maintaining boilerplate code for features like state management, retry logic, and durability, which Temporal handles automatically.
+- SQLModel simplifies CRUD operations with its ORM features, but it presents challenges when dealing with streaming or micro-batching data processing.  Leveraging SQLModel's advanced features for such tasks can introduce complexities, as encountered with session table cleanup.  A workaround involving an extra TRUNCATE call effectively addressed this specific issue, though it highlights potential quirks when pushing the framework beyond basic use cases.
 
-- Bazel introduces complexity that requires time and resources to learn. A successful framework like Bazel has its flaws with changes that documentation has not caught up with that resulted in the failure to produce Docker images.
-- Temporal and Minio with all its benefits introduce new systems that required efforts to upkeep and maintain. Although Minio can be easily replaced by S3, GCP Cloud Storage or Azure Blobs.
-- Temporal also requires an understanding in order to make use of its benefits fully. It also requires the developer to have the ability to create Idimpotent workflows. 
+## Asssumptions
+- This implementation focuses solely on data addition and updates.  Delete operations are not currently supported.
+ 
+## Bugs
 
-### Asssumptions and missing tasks
-- Docker compose and also Docker file creation is covered with teh Postgres image creation. But the FastAPI and Temporal could not be packaged due to issues understanding teh changes in Bazel rules.
-- All data manipulation is assumed to be addition and updates. Deletions are not supported in teh implementation.
-- 
-### Footnotes
+Attempts to package the FastAPI application and Temporal worker application encountered obstacles due to changes in Bazel rules, hindering the creation of their respective Docker images. This is an issue that is currently being fixed
+
+## Footnotes
 
 [^1]: [ZIP Code General Demographic Characteristics](https://proximityone.com/zip16dp1.htm)
