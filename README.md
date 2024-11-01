@@ -57,6 +57,44 @@ IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 | Minio | Optional | Provides scalable and efficient blob storage for handling large datasets |
 | Jupyter Notebook with Pandas | Optional | Used during prototyping to explore the HAPI FHIR api data and allowed testing code for implementation |
 
+#### Directory Structure
+
+```bash
+.
+├── LICENSE
+├── MODULE.bazel
+├── MODULE.bazel.lock
+├── README.md
+├── WORKSPACE
+├── config
+│   └── docker         # docker related files 
+├── docs
+│   ├── design
+│   │   └── images     # images usded by documentation
+│   └── research
+│       └── patients_and_observations.ipynb # notebook used for research
+├── library
+│   ├── converter
+│   │   └── memory.py               # shared code to convert data into memory streams
+│   ├── meta
+│   │   ├── env.py                  # shared code for accessing environment variables
+│   │   └── metaclass.py            # shared code for example to deal with Singleton
+│   ├── orchestration               # shared temporal activities
+│   ├── storage
+│   │   ├── blob_minio.py           # code to manipulate minio blob storage
+│   │   └── postgres.py             # code to manipulate postgre storage
+│   └── webclient                   # code to manipulate external serivces like calling rest apis
+├── service
+│   ├── api                         # fast api code
+│   ├── observation                 # extracting and manipulating observation data including temporal activities
+│   ├── patient                     # extracting and manipulating patient data including temporal activities
+│   └── zipcode                     # temporal activites and workflows to handle patient and observation data
+├── third_party                     # requirements for allowing bazel to build code with python dependencies
+
+└── tools
+    └── runner                      # helper function to run tests
+```
+
 ### Benefits
 
 - SQLModel allowed reducing the boilerplate for data access in Postgres. The ORM allow handles security features like SQL injection automatically. The models can also return directly as FastAPI responses with fields remove easily.
@@ -90,7 +128,7 @@ IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 ### Asssumptions and missing tasks
 - Docker compose and also Docker file creation is covered with teh Postgres image creation. But the FastAPI and Temporal could not be packaged due to issues understanding teh changes in Bazel rules.
 - All data manipulation is assumed to be addition and updates. Deletions are not supported in teh implementation.
-
-## Footnotes
+- 
+### Footnotes
 
 [^1]: [ZIP Code General Demographic Characteristics](https://proximityone.com/zip16dp1.htm)
