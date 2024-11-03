@@ -1,3 +1,4 @@
+load("@aspect_rules_py//py:defs.bzl", "py_library")
 load("//tools/runner:defs.bzl", "pytest_runner")
 
 py_library(
