@@ -159,7 +159,8 @@ This application leverages a combination of essential and optional technologies 
  
 ## Bugs
 
-Attempts to package the FastAPI application and Temporal worker application encountered obstacles due to changes in Bazel rules, hindering the creation of their respective Docker images. This is an issue that is currently being fixed
+- Attempts to package the FastAPI application and Temporal worker application encountered obstacles due to changes in Bazel rules, hindering the creation of their respective Docker images. This is an issue that is currently being fixed
+- Tests requiring access to database and minio are currently broken after conversion to env files. This is an issue that is currently being fixed.
 
 ## Footnotes
 
