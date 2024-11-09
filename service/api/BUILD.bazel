@@ -1,5 +1,8 @@
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@aspect_rules_py//py:defs.bzl", "py_library", "py_binary")
+load("@rules_oci//oci:defs.bzl", "oci_load")
 load("@third_party_deps//:requirements.bzl", "requirement")
+load("//:py_layer.bzl", "py_oci_image")
 
 py_library(
     name = "service_api",
@@ -25,4 +28,42 @@ py_binary(
         requirement("uvicorn"),  # Assuming you're using uvicorn to run the FastAPI app
         ":service_api", 
     ],
+)
+
+py_oci_image(
+    name = "service_api_oic_image",
+    base = "@ubuntu",
+    binary = "service_api_run",
+    entrypoint = ["/service/api/service_api_run"],
+)
+
+platform(
+    name = "aarch64_linux",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+platform(
+    name = "x86_64_linux",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+platform_transition_filegroup(
+    name = "service_api_image",
+    srcs = [":service_api_oic_image"],
+    target_platform = select({
+        "@platforms//cpu:arm64": ":aarch64_linux",
+        "@platforms//cpu:x86_64": ":x86_64_linux",
+    }),
+)
+
+oci_load(
+    name = "service_api_load",
+    image = ":service_api_image",
+    repo_tags = ["gcr.io/oci_python_service_api_run:latest"],
 )

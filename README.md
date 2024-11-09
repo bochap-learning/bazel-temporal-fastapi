@@ -160,6 +160,14 @@ This application leverages a combination of essential and optional technologies 
 ## Bugs
 
 - Attempts to package the FastAPI application and Temporal worker application encountered obstacles due to changes in Bazel rules, hindering the creation of their respective Docker images. This is an issue that is currently being fixed
+  - rules_oci is a new way to create docker compatible Open Container Intiative (OCI) images [Example](https://github.com/aspect-build/bazel-examples/tree/main/oci_python_image)
+    - It has a flaw when building images for python on non linux platforms as it creates an archive of the external packages found in site-packages installed using pip. Since some packages contain platform specifc code that is incompatible for linux base images. Details of the issue is found in the following discussions
+      - https://github.com/aspect-build/bazel-examples/issues/351
+      - https://bazelbuild.slack.com/archives/C04281DTLH0/p1725588762519239?thread_ts=1725513935.581289&cid=C04281DTLH0
+      - https://bazelbuild.slack.com/archives/CA306CEV6/p1655823709083759
+    - Possible workarounds
+      - Perform the bazel build to create the image on a Linux host and publish image to public repo. Use docker compose to grab the image from the repo
+      - Use [rules_pycross](https://github.com/jvolkman/rules_pycross) and [dazel](https://github.com/nadirizr/dazel)
 - Tests requiring access to database and minio are currently broken after conversion to env files. This is an issue that is currently being fixed.
 
 ## Footnotes
