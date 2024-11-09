@@ -10,6 +10,55 @@ This project effectively combines these technologies to create a comprehensive d
 
 This application, built in less than a week, serves as a proof-of-concept, showcasing enterprise-level techniques for data processing and application development. While not production-grade, it offers valuable insights into these practices.
 
+## Requirements
+
+### Functional Requirements
+
+1. Ingesting data for patients and observation from `HAPI FHIR API endpoints`
+   1. /zipcodes
+      1. POST /zipcodes {zipcode: 12345}
+2. Retrieving data for patients and observation
+   1. /patients
+      1. /patients/[patient_id]
+      2. /patient?first_name=[first_name]
+   2. /observations
+      1. GET /observations?patient_id=[patient_id]
+
+### Non-Functional Requirements
+
+1. Performance
+   1. Low response time
+   2. High throughput
+   3. Low Latency
+2. Scalability
+   1. Ability to handle increasing traffic
+   2. Ability to handle increasing data volumne
+3. Portability
+   1. Ease of moving application between environments
+   2. Reversible techonology and implementation decisions
+4. Reliablilty
+   1. Fault tolerance
+   2. Data integrity
+   3. Data consistency
+   4. Monitoring and logging   
+5. Security
+   1. Authentication and Authorization
+   2. Data Protection
+   3. Input Validation
+   4. Output Encoding
+   5. Rate Limiting
+   6. Audting and logging
+6. Availablity
+   1. Infrastructure redundancy
+   2. Error handling and fault tolerance
+   3. Deployment and Maintenance
+7. Maintainablity and Usability
+   1. Code organization and structure
+   2. API Design and documentation
+   3. Versioning
+   4. Testing
+   5. Logging and Monitoring
+
 ## Architecture
 
 ![Architecture Diagram](docs/design/images/architecture.gif)
@@ -57,7 +106,6 @@ This application, built in less than a week, serves as a proof-of-concept, showc
 ### Prerequisites
 
 To simplify application startup, an .env file is utilized to store environment variables. This file provides necessary configurations for both the application itself and its associated Docker Compose setup. To run this application, the .env file will need to be created. The format and variables required can be found in [.env.template](.env.template) 
-
 
 ### Running
 

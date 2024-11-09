@@ -39,7 +39,7 @@ async def get_observations_by_patient_id(patient_id: str) -> Optional[Observatio
         results = session.exec(statement)
         return results.first()
 
-@app.post("/zipcode", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/zipcodes", status_code=status.HTTP_204_NO_CONTENT)
 async def load_zipcode(request: LoadZipcodeRequest):
     response = await start_workflow(get_temporal_host(), request.zipcode)
     print(f"Started workflow. Workflow ID: {response.workflow_id}, RunID {response.run_id}")
