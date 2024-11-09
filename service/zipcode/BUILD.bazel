@@ -32,16 +32,18 @@ py_library(
     visibility = ["//visibility:public"]
 )
 
-pytest_runner(
-    name = "service_zipcode_workflow_test",
-    srcs = [
-        "workflow_test.py",
-    ],
-    deps = [
-        requirement("pytest-asyncio"),
-        ":service_zipcode_workflow"
-    ],
-)
+# remove workflow testing since minio needs to be both localhost and minio 
+# since it is access from both localhost and the docker environment
+# pytest_runner(
+#     name = "service_zipcode_workflow_test",
+#     srcs = [
+#         "workflow_test.py",
+#     ],
+#     deps = [
+#         requirement("pytest-asyncio"),
+#         ":service_zipcode_workflow"
+#     ],
+# )
 
 py_binary(
     name = "service_zipcode_workflow_worker",

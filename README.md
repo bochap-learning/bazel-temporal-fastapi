@@ -86,6 +86,17 @@ IS_LOCAL=1 bazel run //service/api:service_api_run
 IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 ```
 
+#### Testing (Requires Bazel)
+
+1. library tests
+```
+bazel test //library/... --test_env IS_LOCAL=1 $(./env.sh)
+```
+2. service tests
+```
+bazel test //service/... --test_env IS_LOCAL=1 $(./env.sh)
+```
+
 ### Swagger
 
 Once the FastAPI server is running the Swagger UI can be used to view or test the endpoints at http://HOSTNAME:PORT/docs.
@@ -168,7 +179,9 @@ This application leverages a combination of essential and optional technologies 
     - Possible workarounds
       - Perform the bazel build to create the image on a Linux host and publish image to public repo. Use docker compose to grab the image from the repo
       - Use [rules_pycross](https://github.com/jvolkman/rules_pycross) and [dazel](https://github.com/nadirizr/dazel)
-- Tests requiring access to database and minio are currently broken after conversion to env files. This is an issue that is currently being fixed.
+- Tests requiring access to database and minio have a temporary fix
+  - bazel doesn't have a formal way to read from .env files so a script env.sh is used to send --test_env to the test
+  - workflow testing is also disable since it requires minio to be access via the hostname minio (docker) and localhost. That is too complex and hackish to be added
 
 ## Footnotes
 
