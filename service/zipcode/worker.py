@@ -20,7 +20,7 @@ async def main():
     bucket = config.bucket
     blob = MinioClient(config)
     db = Postgres(get_api_db_conn())
-    worker = Worker(
+    async with Worker(
         client,
         task_queue = ETL_ZIPCODE_TASK_QUEUE,
         workflows = [ETLZipcodeWorkflow],
@@ -30,9 +30,14 @@ async def main():
             ExtractObservationActivity().extract_observation,
             LoadObservationActivity(blob, bucket).load_observation
         ],
-    )
-    print("Started worker...")
-    await worker.run()
+    ):
+        print("Worker started, ctrl+c to exit.")       
+        await asyncio.Future() # keep the worker running
+    print("Shutting down")
+
             
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())    
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt received, shutting down...")

@@ -4,8 +4,8 @@ PATIENT_HEADERS: List[str] = ["id","first_name","gender","birth_date"]
 PATIENT_TABLE_TEMP_NAME: str = "patient_temp"
 
 def get_patients_url(zipcode: str) -> str:
-    # caping count to 15 to reduce the number of data and concurrent access in each workflow
-    return f"https://hapi.fhir.org/baseR5/Patient?address-postalcode={zipcode}&_getpagesoffset=0&_count=15"
+    # caping count to 50 to reduce the number of data and concurrent access in each workflow
+    return f"https://hapi.fhir.org/baseR5/Patient?address-postalcode={zipcode}&_getpagesoffset=0&_count=50"
 
 
 CREATE_PATIENT_TABLE_PRODUCTION: List[str] = [
