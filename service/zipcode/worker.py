@@ -1,7 +1,14 @@
 import asyncio
-from temporalio.client import Client
 from temporalio.worker import Worker
-from library.meta.env import get_minio_configuration, get_api_db_conn, get_temporal_host
+from library.meta.config import (
+    get_env_config
+)
+from library.client import (
+    get_temporal_client,
+    get_api_db_client,
+    get_vault_client,
+    get_minio_client
+)
 from library.orchestration.activity import CustomSqlActivity
 from library.storage.blob_minio import MinioClient
 from library.storage.postgres import Postgres
@@ -15,20 +22,20 @@ from service.zipcode.workflow import ETLZipcodeWorkflow
 
 
 async def main():
-    client = await Client.connect(get_temporal_host(), namespace="default")
-    config = get_minio_configuration()
-    bucket = config.bucket
-    blob = MinioClient(config)
-    db = Postgres(get_api_db_conn())
+    env_config = get_env_config()
+    vault = get_vault_client(env_config)
+    client = get_temporal_client(vault, env_config.localhost_override)
+    db = get_api_db_client(vault, env_config.localhost_override)
+    blob = get_minio_client(vault, env_config.localhost_override)
     async with Worker(
         client,
         task_queue = ETL_ZIPCODE_TASK_QUEUE,
         workflows = [ETLZipcodeWorkflow],
         activities = [
-            ExtractAndGeneratePatientActivity(blob, bucket).extract_and_generate_patient,
+            ExtractAndGeneratePatientActivity(blob).extract_and_generate_patient,
             CustomSqlActivity(db).execute_sql,
             ExtractObservationActivity().extract_observation,
-            LoadObservationActivity(blob, bucket).load_observation
+            LoadObservationActivity(blob).load_observation
         ],
     ):
         print("Worker started, ctrl+c to exit.")       

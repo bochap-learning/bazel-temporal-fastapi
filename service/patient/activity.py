@@ -2,7 +2,6 @@ from typing import Any
 from temporalio import activity
 from library.webclient.rest import get_to_json
 from library.converter.memory import to_csv_stringio
-from library.storage.postgres import Postgres
 from library.storage.blob_minio import MinioClient
 from service.patient.shared import PATIENT_HEADERS
 from service.patient.model import (
@@ -12,9 +11,8 @@ from service.patient.model import (
 from service.patient.extractor import extract_page
 
 class ExtractAndGeneratePatientActivity:
-    def __init__(self, blob: MinioClient, bucket: str) -> None:
+    def __init__(self, blob: MinioClient) -> None:
         self.blob = blob
-        self.bucket = bucket
 
     @activity.defn
     async def extract_and_generate_patient(self, input: ExtractAndGeneratePatientActivityInput) -> ExtractAndGeneratePatientActivityOutput:

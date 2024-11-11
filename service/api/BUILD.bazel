@@ -11,8 +11,11 @@ py_library(
         requirement("fastapi"),
         requirement("pydantic"),
         requirement("sqlmodel"),
+        requirement("temporalio"),
         "//library/meta:library_meta",
         "//library/storage:library_rdbms",
+        "//library/storage:library_vault",
+        "//library/client:library_client",
         "//service/patient:service_patient_shared",
         "//service/observation:service_observation_shared",
         "//service/zipcode:service_zipcode_workflow"

@@ -20,3 +20,13 @@ py_library(
     ],
     visibility = ["//visibility:public"]
 )
+
+py_library(
+    name = "library_vault",
+    srcs = ["vault.py"],
+    deps = [
+        requirement("hvac"),
+        "//library/meta:library_meta",
+    ],
+    visibility = ["//visibility:public"]
+)

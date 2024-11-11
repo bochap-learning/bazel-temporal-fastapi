@@ -41,6 +41,9 @@ py_library(
 #     ],
 #     deps = [
 #         requirement("pytest-asyncio"),
+#         "//library/meta:library_meta",
+#         "//library/client:library_client",
+#         "//library/storage:library_vault",
 #         ":service_zipcode_workflow"
 #     ],
 # )
@@ -52,8 +55,11 @@ py_binary(
     deps = [
         requirement("temporalio"),
         "//library/orchestration:library_orchestration",
+        "//library/meta:library_meta",
+        "//library/client:library_client",
+        "//library/storage:library_vault",
         "//library/storage:library_rdbms",
-        "//library/storage:library_blob",         
+        "//library/storage:library_blob",
         ":service_zipcode_workflow"  
     ],
 )

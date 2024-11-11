@@ -591,6 +591,10 @@ httpx==0.27.2 \
     # via
     #   -r requirements.in
     #   jupyterlab
+hvac==2.3.0 \
+    --hash=sha256:1b85e3320e8642dd82f234db63253cda169a817589e823713dc5fca83119b1e2 \
+    --hash=sha256:a3afc5710760b6ee9b3571769df87a0333da45da05a5f9f963e1d3925a84be7d
+    # via -r requirements.in
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
@@ -1513,6 +1517,10 @@ pygments==2.18.0 \
     #   ipython
     #   jupyter-console
     #   nbconvert
+pyhcl==0.4.5 \
+    --hash=sha256:30ee337d330d1f90c9f5ed8f49c468f66c8e6e43192bdc7c6ece1420beb3070c \
+    --hash=sha256:c47293a51ccdd25e18bb5c8c0ab0ffe355b37c87f8d6f9d3280dc41efd4740bc
+    # via -r requirements.in
 pytest==8.3.3 \
     --hash=sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181 \
     --hash=sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2
@@ -1531,10 +1539,6 @@ python-dateutil==2.9.0.post0 \
     #   arrow
     #   jupyter-client
     #   pandas
-python-dotenv==1.0.1 \
-    --hash=sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca \
-    --hash=sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a
-    # via -r requirements.in
 python-json-logger==2.0.7 \
     --hash=sha256:23e7ec02d34237c5aa1e29a070193a4ea87583bb4e7f8fd06d3de8264c4b2e1c \
     --hash=sha256:f380b826a991ebbe3de4d897aeec42760035ac760345e57b812938dc8b35e2bd
@@ -1733,6 +1737,7 @@ requests==2.32.3 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via
     #   -r requirements.in
+    #   hvac
     #   jupyterlab-server
 rfc3339-validator==0.1.4 \
     --hash=sha256:138a2abdf93304ad60530167e51d2dfb9549521a836871b88d7f4695d0022f6b \

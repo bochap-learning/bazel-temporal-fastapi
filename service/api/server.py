@@ -2,16 +2,22 @@ from typing import Optional
 from fastapi import FastAPI, status
 from pydantic import BaseModel
 from sqlmodel import select
-from library.meta.env import get_api_db_conn, get_temporal_host
-from library.storage.postgres import Postgres
+from library.meta.config import get_env_config
+from library.client.factory import (
+    get_temporal_client, get_api_db_client, get_vault_client
+)
 from service.zipcode.workflow import start_workflow
-from service.patient.model import Patient, PatientPersistent
-from service.observation.model import Observation, ObservationPersistent
+from service.patient.model import (
+    Patient, PatientPersistent
+)
+from service.observation.model import (
+    Observation, ObservationPersistent
+)
 
-
-
+env_config = get_env_config()
+vault = get_vault_client()
+db = get_api_db_client()
 app = FastAPI()
-db = Postgres(get_api_db_conn())
 
 class LoadZipcodeRequest(BaseModel):
     zipcode: str
@@ -41,5 +47,6 @@ async def get_observations_by_patient_id(patient_id: str) -> Optional[Observatio
 
 @app.post("/zipcodes", status_code=status.HTTP_204_NO_CONTENT)
 async def load_zipcode(request: LoadZipcodeRequest):
-    response = await start_workflow(get_temporal_host(), request.zipcode)
+    client = get_temporal_client(vault)
+    response = await start_workflow(client, request.zipcode)
     print(f"Started workflow. Workflow ID: {response.workflow_id}, RunID {response.run_id}")

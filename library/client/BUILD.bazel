@@ -1,0 +1,15 @@
+load("@aspect_rules_py//py:defs.bzl", "py_library")
+load("@third_party_deps//:requirements.bzl", "requirement")
+
+py_library(
+    name = "library_client",
+    srcs = ["factory.py"],
+    deps = [
+        requirement("temporalio"),
+        "//library/meta:library_meta",
+        "//library/storage:library_blob",
+        "//library/storage:library_rdbms",
+        "//library/storage:library_vault",
+    ],
+    visibility = ["//visibility:public"]
+)

@@ -138,11 +138,11 @@ IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 
 1. library tests
 ```
-bazel test //library/... --test_env IS_LOCAL=1 $(./env.sh)
+bazel test //library/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8200 --action_env VAULT_TOKEN=unsecure4convience --action_env VAULT_PATH=supersecretlocation  --action_env IS_LOCAL=1
 ```
 2. service tests
 ```
-bazel test //service/... --test_env IS_LOCAL=1 $(./env.sh)
+bazel test //service/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8200 --action_env VAULT_TOKEN=unsecure4convience --action_env VAULT_PATH=supersecretlocation  --action_env IS_LOCAL=1
 ```
 
 ### Swagger

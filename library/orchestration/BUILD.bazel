@@ -26,6 +26,9 @@ pytest_runner(
     deps = [
         requirement("pytest-asyncio"),
         "//library/meta:library_meta",
+        "//library/storage:library_rdbms",
+        "//library/storage:library_vault",
+        "//library/client:library_client",
         ":library_orchestration"
     ]
 )

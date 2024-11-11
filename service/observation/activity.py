@@ -2,7 +2,6 @@ from typing import Any
 from temporalio import activity
 from library.webclient.rest import get_to_json
 from library.converter.memory import to_csv_stringio
-from library.storage.postgres import Postgres
 from library.storage.blob_minio import MinioClient
 from service.observation.shared import (OBSERVATION_HEADERS, get_observation_url)
 from service.observation.model import (
@@ -23,9 +22,8 @@ class ExtractObservationActivity:
         return extract_page(input.patient_id, raw_observation)
     
 class LoadObservationActivity:
-    def __init__(self, blob: MinioClient, bucket: str) -> None:
+    def __init__(self, blob: MinioClient) -> None:
         self.blob = blob
-        self.bucket = bucket
 
     @activity.defn
     async def load_observation(self, input: LoadObservationActivityInput) -> LoadObservationActivityOutput:

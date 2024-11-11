@@ -9,7 +9,10 @@ py_library(
         "shared.py"
     ],
     deps = [
+        "//library/meta:library_meta",
         "//library/storage:library_blob",
+        "//library/storage:library_vault",
+        "//library/client:library_client",
         "//service/patient:service_patient_shared"
     ],
     visibility = ["//visibility:public"]

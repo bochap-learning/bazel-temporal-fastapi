@@ -1,28 +1,34 @@
 from minio import Minio
 from io import StringIO, BytesIO
-from library.meta.env import MinioStoreConfig, get_minio_host, get_object_path
 from library.meta.metaclass import Singleton
 
 class MinioClient(metaclass=Singleton):    
     def __init__(
         self, 
-        config: MinioStoreConfig,
+        protocol: str,
+        host_with_override: str,
+        host: str,
+        port: str,
+        access_key: str,
+        secret_key: str,
+        bucket: str,
         secure: bool = False
     ):
-        self.config = config
-        host = get_minio_host(self.config)
+        url = f"{host_with_override}:{port}"
         self.client = Minio(
-            host, access_key=config.access_key, secret_key=config.secret_key, secure=secure
+            url, access_key=access_key, secret_key=secret_key, secure=secure
         )
+        self.path = f"{protocol}://{host}:{port}/{bucket}"
+        self.bucket = bucket        
 
     def write_stringio(self, input: StringIO, object_name: str) -> str:
         str_data = input.getvalue().encode('utf-8')
         data = BytesIO(str_data)
         self.client.put_object(
-            self.config.bucket,
+            self.bucket,
             object_name,
             data=data,
             length=len(str_data),
             content_type="text/csv"
         )
-        return get_object_path(self.config, object_name)
+        return f"{self.path}/{object_name}"

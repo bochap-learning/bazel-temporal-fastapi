@@ -141,8 +141,7 @@ class ETLZipcodeWorkflow:
             workflow.continue_as_new(new_input)
 
     
-async def start_workflow(host: str, zipcode: str):
-    client = await Client.connect(host)
+async def start_workflow(client: Client, zipcode: str):
     input = ETLZipcodeWorkflowInput(
         get_patients_url(zipcode),
         zipcode,
