@@ -15,9 +15,7 @@ services:
       interval: 5s
       timeout: 1s
     restart: always
-    depends_on:
-      vault:    
-  mc:
+  minio_mc:
     image: minio/mc:latest
     depends_on:
       minio:

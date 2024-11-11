@@ -1,6 +1,5 @@
 services:
   temporal_db:
-    container_name: temporalpostgresql
     restart: always  # Always restart the container if it stops
     environment:
       POSTGRES_USER: ${TEMPORALPOSTGRES_USER}
@@ -11,10 +10,7 @@ services:
       - ${TEMPORALPOSTGRES_PORT}:5432
     volumes:
       - temporal-postgresql:/var/lib/postgresql/data
-    depends_on:
-      - vault
   temporal:
-    container_name: temporal
     environment:
       - DB=postgres12
       - DB_PORT=5432        # port access in docker enviroment not host environment
@@ -30,7 +26,6 @@ services:
     depends_on:
       - temporal_db      
   temporal-admin-tools:
-    container_name: temporal-admin-tools
     depends_on:
       - temporal
     environment:
@@ -40,7 +35,6 @@ services:
     stdin_open: true
     tty: true
   temporal-ui:
-    container_name: temporal-ui
     depends_on:
       - temporal
     environment:

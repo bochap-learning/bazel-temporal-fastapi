@@ -1,0 +1,28 @@
+services:
+  vault:
+    container_name: vault-docker
+  vault_seed:
+    container_name: vault-seed-docker
+  minio:
+    container_name: minio-docker
+    depends_on:
+      - vault
+  minio_mc:
+    container_name: minio-mc-docker
+  api_db:
+    container_name: api-db-docker
+    depends_on:
+      - minio
+      - vault    
+  pgadmin:
+    container_name: pgadmin-db-docker
+  temporal_db:
+    container_name: temporalpostgresql-docker
+    depends_on:
+      - vault    
+  temporal:
+    container_name: temporal-docker
+  temporal-admin-tools:
+    container_name: temporal-admin-tools-docker
+  temporal-ui:
+    container_name: temporal-ui-docker

@@ -1,0 +1,28 @@
+services:
+  vault:
+    container_name: vault-local
+  vault_seed:
+    container_name: vault-seed-local
+  minio:
+    container_name: minio-local
+    depends_on:
+      - vault
+  minio_mc:
+    container_name: minio-mc-local
+  api_db:
+    container_name: api-db-local
+    depends_on:
+      - minio
+      - vault    
+  pgadmin:
+    container_name: pgadmin-db-local
+  temporal_db:
+    container_name: temporalpostgresql-local
+    depends_on:
+      - vault    
+  temporal:
+    container_name: temporal-local
+  temporal-admin-tools:
+    container_name: temporal-admin-tools-local
+  temporal-ui:
+    container_name: temporal-ui-local

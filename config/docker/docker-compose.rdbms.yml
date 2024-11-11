@@ -1,6 +1,5 @@
 services:
   api_db:
-    container_name: api-db
     build: ./postgres-with-curl
     restart: always  # Always restart the container if it stops
     environment:
@@ -11,9 +10,6 @@ services:
       - "${APIPOSTGRES_PORT}:5432"  # Map port 5432 on the host to port 5432 in the container
     volumes:
       - api-postgres:/var/lib/postgresql/data  # Persist data even if the container is removed
-    depends_on:
-      - minio
-      - vault
   pgadmin:
     image: dpage/pgadmin4
     ports:

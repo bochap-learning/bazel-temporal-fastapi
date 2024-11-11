@@ -1,0 +1,5 @@
+include:
+  - docker-compose.vault.yml
+  - docker-compose.blob.yml
+  - docker-compose.rdbms.yml
+  - docker-compose.workflow.yml
