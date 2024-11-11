@@ -116,7 +116,7 @@ Running via Docker compose (**Actively working to resolve imaging issues that ar
 docker compose --env-file .env -f config/docker/docker-compose.yml up -d
 ```
 
-#### Development (Requires Bazel)
+#### Development on local (Requires Bazel)
 
 1. Running supporting services (Temporal Cluster, Postgres Databases and Minio)
 
@@ -126,15 +126,18 @@ docker compose --env-file .env -f config/docker/docker-compose.yml up -d
 
 2. Start FastAPI
 ```
-IS_LOCAL=1 bazel run //service/api:service_api_run
+VAULT_HOST=vault VAULT_PORT=8200 VAULT_TOKEN=unsecure4convience VAULT_PATH=supersecretlocation IS_LOCAL=1 bazel run //service/api:service_api_run
 ```
 
 3. Start Temporal Worker
 ```
-IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
+VAULT_HOST=vault VAULT_PORT=8200 VAULT_TOKEN=unsecure4convience VAULT_PATH=supersecretlocation IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 ```
 
-#### Testing (Requires Bazel)
+<sub>* `bazel run` doesn't provide options to provide enviroment variables as arguments. So we need to set the environment variables via the shell before runnning</sub>
+
+
+#### Testing on local (Requires Bazel)
 
 1. library tests
 ```
@@ -144,6 +147,8 @@ bazel test //library/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8
 ```
 bazel test //service/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8200 --action_env VAULT_TOKEN=unsecure4convience --action_env VAULT_PATH=supersecretlocation  --action_env IS_LOCAL=1
 ```
+
+<sub>* `bazel test` allows the use of `action_env` to provide enviroment variables as arguments to run the command with the enviroment variables set.</sub>
 
 ### Swagger
 

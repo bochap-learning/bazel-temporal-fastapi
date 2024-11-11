@@ -15,9 +15,10 @@ from service.observation.model import (
 )
 
 env_config = get_env_config()
-vault = get_vault_client()
-db = get_api_db_client()
+vault = get_vault_client(env_config)
+db = get_api_db_client(vault, env_config.localhost_override)
 app = FastAPI()
+db.register_schema()
 
 class LoadZipcodeRequest(BaseModel):
     zipcode: str
@@ -47,6 +48,6 @@ async def get_observations_by_patient_id(patient_id: str) -> Optional[Observatio
 
 @app.post("/zipcodes", status_code=status.HTTP_204_NO_CONTENT)
 async def load_zipcode(request: LoadZipcodeRequest):
-    client = get_temporal_client(vault)
+    client = await get_temporal_client(vault, env_config.localhost_override)
     response = await start_workflow(client, request.zipcode)
     print(f"Started workflow. Workflow ID: {response.workflow_id}, RunID {response.run_id}")

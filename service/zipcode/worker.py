@@ -3,15 +3,13 @@ from temporalio.worker import Worker
 from library.meta.config import (
     get_env_config
 )
-from library.client import (
+from library.client.factory import (
     get_temporal_client,
     get_api_db_client,
     get_vault_client,
     get_minio_client
 )
 from library.orchestration.activity import CustomSqlActivity
-from library.storage.blob_minio import MinioClient
-from library.storage.postgres import Postgres
 from service.patient.activity import ExtractAndGeneratePatientActivity
 from service.observation.activity import (
     ExtractObservationActivity,
@@ -24,7 +22,7 @@ from service.zipcode.workflow import ETLZipcodeWorkflow
 async def main():
     env_config = get_env_config()
     vault = get_vault_client(env_config)
-    client = get_temporal_client(vault, env_config.localhost_override)
+    client = await get_temporal_client(vault, env_config.localhost_override)
     db = get_api_db_client(vault, env_config.localhost_override)
     blob = get_minio_client(vault, env_config.localhost_override)
     async with Worker(

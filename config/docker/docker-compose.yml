@@ -1,5 +1,5 @@
 services:
-  api-db:
+  api_db:
     container_name: api-db
     build: ./postgres-with-curl
     restart: always  # Always restart the container if it stops

@@ -10,7 +10,8 @@ from library.storage.blob_minio import MinioClient
 async def get_temporal_client(vault: Vault, host_override: str) -> Client:
     host = host_override if host_override != None else vault.get_secret("temporal", "host")
     url = f"{host}:{vault.get_secret("temporal", "consoleport")}"
-    return await Client.connect(url, namespace="default")
+    client = await Client.connect(url, namespace="default")
+    return client
 
 """
     get postgres client using vault credentials with host overriden if host_override is provided
@@ -22,7 +23,6 @@ def get_api_db_client(vault: Vault, host_override: str) -> Postgres:
     db = vault.get_secret("apipostgres", "db")
     port = vault.get_secret("apipostgres", "port")
     conn = f"postgresql://{user}:{password}@{host}:{port}/{db}"
-    print(conn)
     return Postgres(conn)
 
 """
