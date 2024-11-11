@@ -1,0 +1,21 @@
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    ports:
+      - "${VAULT_PORT}:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_ADDR=http://localhost:${VAULT_PORT}
+    volumes:
+      - vault-data:/vault/data
+  vault-seed:
+    build: ./vault-seed
+    depends_on:
+      - vault    
+    command: python run.py
+volumes:
+  vault-data:
+  

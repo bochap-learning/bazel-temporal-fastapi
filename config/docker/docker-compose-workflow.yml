@@ -1,0 +1,53 @@
+services:
+  temporal_db:
+    container_name: temporalpostgresql
+    restart: always  # Always restart the container if it stops
+    environment:
+      POSTGRES_USER: ${TEMPORALPOSTGRES_USER}
+      POSTGRES_PASSWORD: ${TEMPORALPOSTGRES_PASSWORD}
+      POSTGRES_DB:  ${TEMPORALPOSTGRES_DB}
+    image: postgres:latest
+    ports:
+      - ${TEMPORALPOSTGRES_PORT}:5432
+    volumes:
+      - temporal-postgresql:/var/lib/postgresql/data
+    depends_on:
+      - vault
+  temporal:
+    container_name: temporal
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432        # port access in docker enviroment not host environment
+      - POSTGRES_USER=${TEMPORALPOSTGRES_USER}
+      - POSTGRES_PWD=${TEMPORALPOSTGRES_PASSWORD}
+      - POSTGRES_SEEDS=temporal_db
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    image: temporalio/auto-setup:latest
+    ports:
+      - ${TEMPORAL_CONSOLEPORT}:7233
+    volumes:
+      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
+    depends_on:
+      - temporal_db      
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=${TEMPORAL_HOST}:${TEMPORAL_CONSOLEPORT}
+      - TEMPORAL_CLI_ADDRESS=${TEMPORAL_HOST}:${TEMPORAL_CONSOLEPORT}
+    image: temporalio/admin-tools:latest
+    stdin_open: true
+    tty: true
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=${TEMPORAL_HOST}:${TEMPORAL_CONSOLEPORT}
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    image: temporalio/ui:latest
+    ports:
+      - ${TEMPORAL_UIPORT}:8080
+volumes:
+  temporal-postgresql:  

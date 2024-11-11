@@ -113,7 +113,7 @@ To simplify application startup, an .env file is utilized to store environment v
 
 Running via Docker compose (**Actively working to resolve imaging issues that are preventing deployment through Docker Compose. This feature will be available soon.**)
 ```
-docker compose --env-file .env -f config/docker/docker-compose.yml up -d
+docker compose --env-file config/docker/vault-seed/.env -f config/docker/docker-compose-vault.yml -f config/docker/docker-compose-blob.yml -f config/docker/docker-compose-rdbms.yml -f config/docker/docker-compose-workflow.yml up -d
 ```
 
 #### Development on local (Requires Bazel)
@@ -121,7 +121,7 @@ docker compose --env-file .env -f config/docker/docker-compose.yml up -d
 1. Running supporting services (Temporal Cluster, Postgres Databases and Minio)
 
 ```
-docker compose --env-file .env -f config/docker/docker-compose.yml up -d
+docker compose --env-file config/docker/vault-seed/.env -f config/docker/docker-compose-vault.yml -f config/docker/docker-compose-blob.yml -f config/docker/docker-compose-rdbms.yml -f config/docker/docker-compose-workflow.yml up -d
 ```
 
 2. Start FastAPI
