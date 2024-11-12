@@ -1,7 +1,10 @@
 load("@aspect_rules_py//py:defs.bzl", "py_library")
+load("@third_party_deps//:requirements.bzl", "requirement")
 py_library(
     name = "library_webclient",
     srcs = ["rest.py"],
-    deps = [],
+    deps = [
+        requirement("certifi")
+    ],
     visibility = ["//visibility:public"]
 )
