@@ -22,7 +22,7 @@ services:
       - vault    
   temporal:
     container_name: temporal-local
-  temporal-admin-tools:
+  temporal_admin_tools:
     container_name: temporal-admin-tools-local
-  temporal-ui:
+  temporal_ui:
     container_name: temporal-ui-local

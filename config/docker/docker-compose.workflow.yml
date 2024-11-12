@@ -25,7 +25,7 @@ services:
       - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
     depends_on:
       - temporal_db      
-  temporal-admin-tools:
+  temporal_admin_tools:
     depends_on:
       - temporal
     environment:
@@ -34,7 +34,7 @@ services:
     image: temporalio/admin-tools:latest
     stdin_open: true
     tty: true
-  temporal-ui:
+  temporal_ui:
     depends_on:
       - temporal
     environment:

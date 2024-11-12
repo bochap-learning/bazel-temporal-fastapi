@@ -22,7 +22,14 @@ services:
       - vault    
   temporal:
     container_name: temporal-docker
-  temporal-admin-tools:
+  temporal_admin_tools:
     container_name: temporal-admin-tools-docker
-  temporal-ui:
+  temporal_ui:
     container_name: temporal-ui-docker
+  service_api:
+    container_name: service-api-docker
+    depends_on:
+      - vault
+      - minio
+      - api_db
+      - temporal    
