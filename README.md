@@ -64,42 +64,66 @@ This application, built in less than a week, serves as a proof-of-concept, showc
 ![Architecture Diagram](docs/design/images/architecture.gif)
 
 ### Code Structure
-
 ```bash
 .
-├── LICENSE
-├── MODULE.bazel
-├── MODULE.bazel.lock
-├── README.md
-├── WORKSPACE
 ├── config
-│   └── docker         # docker related files 
+│   └── docker                   # docker confirguration files for running a standalone cluster and also local development cluster
+│       ├── postgres-with-curl   # docker build files for building postgres image with curl
+│       ├── temporal             # docker configuration files used form temporal
+│       ├── vault-seed           # docker build files and code for application to seed vault connection and access control data
 ├── docs
 │   ├── design
-│   │   └── images     # images usded by documentation
+│   │   └── images               # images used by documentation
 │   └── research
-│       └── patients_and_observations.ipynb # notebook used for research
+│       └── patients_and_observations.ipynb   # notebook used for research
 ├── library
+│   ├── client
+│   │   └── factory.py           # shared code to construct clients for minio, postgres, and vault for used in the services
 │   ├── converter
-│   │   └── memory.py               # shared code to convert data into memory streams
+│   │   └── memory.py            # shared code to convert data into memory streams
 │   ├── meta
-│   │   ├── env.py                  # shared code for accessing environment variables
-│   │   └── metaclass.py            # shared code for example to deal with Singleton
-│   ├── orchestration               # shared temporal activities
+│   │   ├── config.py            # shared code to obtained enviroment values (vault or local running flags)
+│   │   └── metaclass.py         # shared code for meta classes like Singleton
+│   ├── orchestration
+│   │   ├── activity.py          # shared code for generic temporal activities with no business specific logic. (example: custom sql execution)
+│   │   └── model.py             # shared code for model used by generic temporal activitie. (example: input or output parameters)
 │   ├── storage
-│   │   ├── blob_minio.py           # code to manipulate minio blob storage
-│   │   └── postgres.py             # code to manipulate postgre storage
-│   └── webclient                   # code to manipulate external serivces like calling rest apis
+│   │   ├── blob_minio.py        # shared code to manipulate minio blob storage
+│   │   ├── postgres.py          # shared code to manipulate postgres storage
+│   │   └── vault.py             # shared code to manipulate vault storage
+│   └── webclient
+│       └── rest.py              # shared code to interact with external rest api services
 ├── service
-│   ├── api                         # fast api code
-│   ├── observation                 # extracting and manipulating observation data including temporal activities
-│   ├── patient                     # extracting and manipulating patient data including temporal activities
-│   └── zipcode                     # temporal activites and workflows to handle patient and observation data
-├── third_party                     # requirements for allowing bazel to build code with python dependencies
-
-└── tools
-    └── runner                      # helper function to run tests
+│   ├── api
+│   │   ├── run.py               # entry point to run fast api server with ASGI (Asynchronous Server Gateway Interface) framework
+│   │   └── server.py            # fast api server code
+│   ├── observation
+│   │   ├── data                 # data use for testing observation
+│   │   ├── activity.py          # code for temporal actvity code to work with observation data
+│   │   ├── extractor.py         # code to extract observation data from raw data provided by HAPI FHIR API
+│   │   ├── model.py             # code for models used in temporal activites, persistent storage or FastAPI
+│   │   └── shared.py            # code for constant values or generic functions used for processing observation data
+│   ├── patient                  
+│   │   ├── data                 # data use for testing patient
+│   │   ├── activity.py          # code for temporal actvity code to work with patient data
+│   │   ├── extractor.py         # code to extract patient data from raw data provided by HAPI FHIR API
+│   │   ├── model.py             # code for models used in temporal activites, persistent storage or FastAPI
+│   │   └── shared.py            # code for constant values or generic functions used for processing patient data
+│   └── zipcode
+│       ├── model.py             # code for models used in temporal workflow, FastAPI
+│       ├── shared.py            # code for constant values or generic functions used for processing zipcode data
+│       ├── worker.py            # code for temporal workers
+│       └── workflow.py          # code for temporal workflow processing patient and observation data related to provided zipcode
+├── tools
+│   └── runner
+│       ├── defs.bzl             # rule file to provide customizations to support pytesting
+│       └── pytest_runner.py     # code wrapper to allow bazel to run pytest directly
+├── README.md
+├── py_layer.bzl                 # rule file to provide layering support for Python applications built as OCI images
+├── requirements.in              # pip dependency declaration used by application
+└── requirements_lock.txt        # lock file pip dependency declaration used by application used by imaging
 ```
+<sub>Non critical file like `xx_test.py`, `__init__.py` or `Bazel` related files are obmitted unless it details a complex or custom detail of the application</sub>
 
 ## Getting Started
 
@@ -113,7 +137,7 @@ The application makes use of supporting services for relational data (Postgres),
 The application is broken into 3 different parts during the build process. The 3 parts are
 
 1. External dependencies used by application code
-This part generates the `requirements_lock.txt` and `MODULE.bazel.lock` file, this is platform dependant since the packages used in Linux and MacOS is different and are not compatible. When building docker images the command should be ran on a Linux host. [^2]
+This part generates the `requirements_lock.txt` and `MODULE.bazel.lock` file, this is platform dependant since the packages used in Linux and MacOS is different and are not compatible. Currently building of Open Container Intiative (OCI) compatible images is supported on linux hosts since the images used a linux base during runtime.
 ```
 bazel run //:requirements.update
 ```
@@ -145,12 +169,12 @@ docker compose --env-file config/docker/vault-seed/.env -f config/docker/docker-
 
 2. Start FastAPI
 ```
-VAULT_HOST=vault VAULT_PORT=8200 VAULT_TOKEN=unsecure4convience VAULT_PATH=supersecretlocation IS_LOCAL=1 bazel run //service/api:service_api_run
+VAULT_HOST=[YOUR_HOST] VAULT_PORT=[YOUR_PORT] VAULT_TOKEN=[YOUR_TOKEN] VAULT_PATH=[YOUR_PATH] IS_LOCAL=1 bazel run //service/api:service_api_run
 ```
 
 3. Start Temporal Worker
 ```
-VAULT_HOST=vault VAULT_PORT=8200 VAULT_TOKEN=unsecure4convience VAULT_PATH=supersecretlocation IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
+VAULT_HOST=[YOUR_HOST] VAULT_PORT=[YOUR_PORT] VAULT_TOKEN=[YOUR_TOKEN] VAULT_PATH=[YOUR_PATH] IS_LOCAL=1 bazel run //service/zipcode:service_zipcode_workflow_worker
 ```
 
 <sub>* `bazel run` doesn't provide options to provide enviroment variables as arguments. So we need to set the environment variables via the shell before runnning</sub>
@@ -160,11 +184,11 @@ VAULT_HOST=vault VAULT_PORT=8200 VAULT_TOKEN=unsecure4convience VAULT_PATH=super
 
 1. library tests
 ```
-bazel test //library/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8200 --action_env VAULT_TOKEN=unsecure4convience --action_env VAULT_PATH=supersecretlocation  --action_env IS_LOCAL=1
+bazel test //library/... --action_env VAULT_HOST=[YOUR_HOST] --action_env VAULT_PORT=[YOUR_PORT] --action_env VAULT_TOKEN=[YOUR_TOKEN] --action_env VAULT_PATH=[YOUR_PATH]  --action_env IS_LOCAL=1
 ```
 2. service tests
 ```
-bazel test //service/... --action_env VAULT_HOST=vault --action_env VAULT_PORT=8200 --action_env VAULT_TOKEN=unsecure4convience --action_env VAULT_PATH=supersecretlocation  --action_env IS_LOCAL=1
+bazel test //service/... --action_env VAULT_HOST=[YOUR_HOST] --action_env VAULT_PORT=[YOUR_PORT] --action_env VAULT_TOKEN=[YOUR_TOKEN] --action_env VAULT_PATH=[YOUR_PATH]  --action_env IS_LOCAL=1
 ```
 
 <sub>* `bazel test` allows the use of `action_env` to provide enviroment variables as arguments to run the command with the enviroment variables set.</sub>
@@ -182,6 +206,7 @@ Once the FastAPI server is running the Swagger UI can be used to view or test th
 |FastAPI| Required|☀️|
 |PostgreSQL| Required|☀️|
 |Docker| Required|⛅️|
+|HashiCorp Vault| Optional|⛅️|
 |Bazel| Optional|⛅️|
 |Temporal| Optional|☀️|
 |Minio| Optional|☀️|
@@ -196,7 +221,7 @@ This application leverages a combination of essential and optional technologies 
 #### Technology choices and implementation Details
 
 - **FastAPI**: application adheres to RESTful principles, employing standard GET and POST requests for intuitive resource access. This familiar design, well-suited to FastAPI's framework,  ensures easy comprehension for consumers and facilitates future enhancements.  FastAPI's built-in features further enhance the developer experience by auto-generating Swagger documentation and providing an interactive playground for API exploration.
-- **Docker**: This project successfully containerized Postgres using Docker Compose and Dockerfiles, enabling `curl` within the Postgres container for easier deployment and standalone execution of supporting services. However, containerization of the core FastAPI application and Temporal worker failed due to challenges with Bazel rules. Addressing this containerization gap is a high priority for future development.
+- **Docker**: This project successfully containerized Postgres using Docker Compose and Dockerfiles, enabling `curl` within the Postgres container for easier deployment and standalone execution of supporting services. However, containerization of the core FastAPI application and Temporal worker is restricted to only Linux hosts due to challenges with Bazel rules. Addressing this containerization gap is a high priority for future development.
 - **SQLModel**: streamlined database interactions by minimizing boilerplate code for Postgres access. Its built-in ORM capabilities automatically address security concerns such as SQL injection vulnerabilities. Additionally, SQLModel offers seamless integration with FastAPI, allowing models to be returned directly as API responses with effortless field filtering.
 - **Jupyter Notebook and Pandas**: instrumental in the initial exploration and analysis of the HAPI FHIR API data. This facilitated a modular approach to implementation, allowing the code to be broken down into smaller, testable units with comprehensive unit tests for efficient implementation.
 - **Minio**: efficient blob storage facilitates batch processing of data by storing processed records in CSVs. This approach significantly reduces the server load and latency associated with individual API calls, particularly for observation data which requires fetching information per patient. Considering the wide range of population sizes per zip code (from 0 to over 100,000, with an average of 9,000. Refer to the footnote [^1]), retrieving observation data individually could severely impact performance. By leveraging Minio and batch processing, we optimize data ingestion and minimize the overhead of numerous API calls. This is further enhanced by using efficient database loading techniques like `COPY` and `MERGE`.
@@ -226,35 +251,48 @@ This application leverages a combination of essential and optional technologies 
         
         # process results for all patients
         ```
+- **Vault**: offers a secure and streamlined approach to managing connections and credentials for inter-process communication. By centralizing this sensitive information, Vault eliminates the need to embed it directly in application code or package images. This approach not only enhances security but also simplifies management by providing a single, centralized platform for controlling access to and updating these critical details, separate from the code repository.
 
 ### Tradeoffs
 - While the application provides a Swagger interface generated from custom defaults, the current user experience could be improved for better API comprehension.  Although not implemented here, customization of the Swagger documentation is readily achievable, offering an opportunity to enhance the consumer experience.
 - This implementation prioritizes a clear data processing workflow and efficient RDBMS interaction over comprehensive security. To maintain simplicity, security measures are streamlined, focusing on mitigating potential latency and request volume issues. Future enhancements could include stronger security with JWT and decoupling database access through microservices.
 - This implementation prioritizes straightforwardness over extreme scalability for the Get API calls. While current performance is adequate thanks to SQL indexes,  it could be further enhanced to handle very high loads.  Options include migrating resources to dedicated microservices or introducing caching mechanisms and database replicas.
-- Bazel: offers compelling advantages, but its complexity and rapidly evolving nature, coupled with occasional documentation gaps, demands a significant upfront investment in learning and knowledge sharing within development teams. This project faced challenges in Docker image creation due to recent Bazel changes. However, mastering Bazel can unlock streamlined containerization across diverse platforms, including ARM and AMD architectures.
-- While Temporal and Minio offer compelling advantages, they introduce new systems requiring ongoing maintenance.  Minio's compatibility with S3, GCP Cloud Storage, or Azure Blobs provides flexibility.  Temporal's cloud-managed solution for clusters (excluding workers) offers an alternative to self-hosting, trading higher operating expenses for reduced staffing costs associated with complex on-premise deployments.
+- Bazel offers compelling advantages, but its complexity and rapidly evolving nature, coupled with occasional documentation gaps, demands a significant upfront investment in learning and knowledge sharing within development teams. This project faced challenges in Docker image creation due to recent Bazel changes. However, mastering Bazel can unlock streamlined containerization across diverse platforms, including ARM and AMD architectures.
+- While Temporal and Minio offer compelling advantages, they introduce new systems requiring ongoing maintenance. Minio's compatibility with S3, GCP Cloud Storage, or Azure Blobs provides flexibility.  Temporal's cloud-managed solution for clusters (excluding workers) offers an alternative to self-hosting, trading higher operating expenses for reduced staffing costs associated with complex on-premise deployments.
 - To fully leverage Temporal's capabilities, developers need a solid understanding of its concepts and best practices, including the crucial ability to design idempotent workflows. This requires developers to adopt Temporal's opinions and patterns, but in return, they gain a significant reduction in writing and maintaining boilerplate code for features like state management, retry logic, and durability, which Temporal handles automatically.
 - SQLModel simplifies CRUD operations with its ORM features, but it presents challenges when dealing with streaming or micro-batching data processing.  Leveraging SQLModel's advanced features for such tasks can introduce complexities, as encountered with session table cleanup.  A workaround involving an extra TRUNCATE call effectively addressed this specific issue, though it highlights potential quirks when pushing the framework beyond basic use cases.
-- Testing: This project focuses on unit testing core application logic, but acknowledges that full code coverage isn't achieved.  Testing of external packages is skipped, relying on the stability of well-established open-source tools.  While Temporal activities are unit tested, workflow tests are temporarily disabled due to previously encountered issues with Temporal's auto-retry mechanism (which may be configurable). Integration and end-to-end tests are limited to manage the inherent complexity of this distributed proof-of-concept.
+- This project focuses on unit testing core application logic, but acknowledges that full code coverage isn't achieved.  Testing of external packages is skipped, relying on the stability of well-established open-source tools.  While Temporal activities are unit tested, workflow tests are temporarily disabled due to previously encountered issues with Temporal's auto-retry mechanism and network resolving complexities. Integration and end-to-end tests are limited to manage the inherent complexity of this distributed proof-of-concept.
+-  Implementing Vault introduces another system to manage, incurring additional costs for infrastructure, personnel training, and ongoing maintenance.  However, these costs can be offset by reduced security risks and improved operational efficiency, especially for larger organizations with complex infrastructure.  Furthermore, integrating Vault requires adding code to your applications for secrets retrieval, potentially introducing latency. This performance impact can be minimized with careful implementation and optimization techniques like caching. Finally, while the initial setup for small applications might seem complex, Vault's automation features and templating capabilities can streamline the process and ultimately save time by preventing future security headaches and manual secret management.
 
 ## Asssumptions
 - This implementation focuses solely on data addition and updates.  Delete operations are not currently supported.
  
-## Bugs
+## Areas of Improvement
 
-- Attempts to package the FastAPI application and Temporal worker application encountered obstacles due to changes in Bazel rules, hindering the creation of their respective Docker images. This is an issue that is currently being fixed
-  - rules_oci is a new way to create docker compatible Open Container Intiative (OCI) images [Example](https://github.com/aspect-build/bazel-examples/tree/main/oci_python_image)
-    - It has a flaw when building images for python on non linux platforms as it creates an archive of the external packages found in site-packages installed using pip. Since some packages contain platform specifc code that is incompatible for linux base images. Details of the issue is found in the following discussions
-      - https://github.com/aspect-build/bazel-examples/issues/351
-      - https://bazelbuild.slack.com/archives/C04281DTLH0/p1725588762519239?thread_ts=1725513935.581289&cid=C04281DTLH0
-      - https://bazelbuild.slack.com/archives/CA306CEV6/p1655823709083759
-    - Possible workarounds
-      - Perform the bazel build to create the image on a Linux host and publish image to public repo. Use docker compose to grab the image from the repo
-      - Use [rules_pycross](https://github.com/jvolkman/rules_pycross) and [dazel](https://github.com/nadirizr/dazel)
-- Tests requiring access to database and minio have a temporary fix
-  - bazel doesn't have a formal way to read from .env files so a script env.sh is used to send --test_env to the test
-  - workflow testing is also disable since it requires minio to be access via the hostname minio (docker) and localhost. That is too complex and hackish to be added
+### Docker
+Currently, the development process relies on Docker Compose to orchestrate the application's services. This setup requires the application related Docker images to be pre-built and published to Github Packages. This is necessary due to the complexities involved in building the images directly, which stem from:
+1. Third-party Python dependencies: The application relies on external Python libraries that need to access libraries present on the host machine. This creates challenges in packaging these dependencies within the Docker image.
+2. Build environment restrictions: The current build process is limited to Linux hosts with the same CPU architecture as the host machine. This limits the flexibility and portability of the build process.
+To improve this process, we should explore building the Docker images directly within the CI/CD pipeline using a Linux-based Docker container in rules_oci. This approach offers several benefits:
+1. Platform independence: Building within a container removes the dependency on the host machine's operating system and architecture, allowing for consistent builds across different environments.
+2. Simplified dependency management: Building within a container can help manage the complex third-party Python dependencies more effectively.
 
+This investigation can leverage the following resources:
+1. Existing discussions and issues related to rules_oci and cross-compilation on GitHub and Bazel Slack channels.
+   - https://github.com/aspect-build/bazel-examples/issues/351
+   - https://bazelbuild.slack.com/archives/C04281DTLH0/p1725588762519239?thread_ts=1725513935.581289&cid=C04281DTLH0
+   - https://bazelbuild.slack.com/archives/CA306CEV6/p1655823709083759
+2. Tools like rules_pycross and dazel that may simplify cross-compilation and dependency management.
+   - https://github.com/jvolkman/rules_pycross
+   - https://github.com/nadirizr/dazel
+
+### Testing
+Automated workflow testing is currently disabled due to the complexity of setting up and managing access to the minio service. The current setup requires accessing minio via both its hostname (minio) and localhost, which is considered too complex and hacky for a production environment.
+
+### Security
+1. API Access: The API is currently open to the public. Implementing proper authentication and authorization mechanisms is a complex task that requires the use of proven and tested systems. This aspect has been deferred to simplify the initial development and proof-of-concept phase.
+2. Service-to-Service Communication: Communication between services has minimal access control. This simplification was chosen to reduce the complexity of certificate management and programmatic access control rule creation in this proof-of-concept stagees.
+   
 ## Footnotes
 
 [^1]: [ZIP Code General Demographic Characteristics](https://proximityone.com/zip16dp1.htm)
