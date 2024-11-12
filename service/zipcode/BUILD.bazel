@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@aspect_rules_py//py:defs.bzl", "py_library", "py_binary")
-load("@rules_oci//oci:defs.bzl", "oci_load")
+load("@rules_oci//oci:defs.bzl", "oci_load", "oci_push")
 load("@third_party_deps//:requirements.bzl", "requirement")
 load("//:py_layer.bzl", "py_oci_image")
 load("//tools/runner:defs.bzl", "pytest_runner")
