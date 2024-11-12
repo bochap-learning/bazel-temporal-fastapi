@@ -6,20 +6,30 @@ services:
   minio:
     container_name: minio-docker
     depends_on:
-      - vault
+      vault:
+        condition: service_started
+      vault_seed:
+        condition: service_healthy
   minio_mc:
     container_name: minio-mc-docker
   api_db:
     container_name: api-db-docker
     depends_on:
-      - minio
-      - vault    
+      minio:
+        condition: service_healthy
+      vault:
+        condition: service_started
+      vault_seed:
+        condition: service_healthy
   pgadmin:
     container_name: pgadmin-db-docker
   temporal_db:
     container_name: temporalpostgresql-docker
     depends_on:
-      - vault    
+      vault:
+        condition: service_started
+      vault_seed:
+          condition: service_healthy
   temporal:
     container_name: temporal-docker
   temporal_admin_tools:
@@ -29,8 +39,25 @@ services:
   service_api:
     container_name: service-api-docker
     depends_on:
-      - vault
-      - minio
-      - minio_mc
-      - api_db
-      - temporal    
+      vault:
+        condition: service_started
+      vault_seed:
+        condition: service_healthy
+      minio:
+        condition: service_started      
+      api_db:
+        condition: service_started      
+      temporal:
+        condition: service_started      
+  service_zipcode_worker:
+    deploy:
+      replicas: 3    
+    depends_on:
+      vault:
+        condition: service_started
+      vault_seed:
+          condition: service_healthy
+      minio:
+        condition: service_started
+      temporal:
+        condition: service_started

@@ -15,6 +15,11 @@ services:
     depends_on:
       - vault    
     command: python run.py
+    healthcheck:
+      test: curl --fail http://localhost:8000 || exit 1
+      interval: 5s
+      timeout: 0.5s
+      retries: 10
 volumes:
   vault-data:
   

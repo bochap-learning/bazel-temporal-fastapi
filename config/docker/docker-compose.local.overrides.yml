@@ -6,20 +6,30 @@ services:
   minio:
     container_name: minio-local
     depends_on:
-      - vault
+      vault:
+        condition: service_started
+      vault_seed:
+        condition: service_healthy
   minio_mc:
     container_name: minio-mc-local
   api_db:
     container_name: api-db-local
     depends_on:
-      - minio
-      - vault    
+      minio:
+        condition: service_healthy
+      vault:
+        condition: service_started
+      vault_seed:
+        condition: service_healthy
   pgadmin:
     container_name: pgadmin-db-local
   temporal_db:
     container_name: temporalpostgresql-local
     depends_on:
-      - vault    
+      vault:
+        condition: service_started
+      vault_seed:
+          condition: service_healthy
   temporal:
     container_name: temporal-local
   temporal_admin_tools:

@@ -1,7 +1,15 @@
-import sys
 import asyncio
 from dotenv import dotenv_values
 import hvac
+import http.server
+import socketserver
+
+class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"OK")
 
 async def seed_vault(max_retries=10, retry_interval=5):
     """Waits for Vault to be running and unsealed."""
@@ -30,13 +38,9 @@ async def seed_vault(max_retries=10, retry_interval=5):
                     asyncio.create_task(write_secret(client, f"{vault_path}/{path}", value)) for path, value in secrets.items()
                 ]
                 responses = await asyncio.gather(*tasks)
-                print(responses)
                 return True
         except hvac.exceptions.VaultError as e:
             print(f"Error connecting to Vault: {e}")
-
-        
-        
 
     raise Exception("Vault did not become available within the timeout.")
 
@@ -44,5 +48,15 @@ async def write_secret(client, vault_path, secret):
     """Writes a secret to Vault."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, client.secrets.kv.v2.create_or_update_secret, vault_path, secret)
-    
-asyncio.run(seed_vault())
+
+async def main() -> None:
+    await seed_vault()
+    HOST, PORT = "localhost", 8000
+    server = socketserver.TCPServer((HOST, PORT), HealthCheckHandler)    
+    # Start the server in a separate thread
+    asyncio.create_task(asyncio.to_thread(server.serve_forever))
+    print(f"Server started on {PORT}. Press Ctrl+C to stop.")
+    await asyncio.Event().wait()  # Wait forever
+
+if __name__ == "__main__":
+    asyncio.run(main())

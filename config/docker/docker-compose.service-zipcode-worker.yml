@@ -1,0 +1,8 @@
+services:
+  service_zipcode_worker:
+    image: ghcr.io/bochap-learning/bazel-temporal-fastapi/service_zipcode_workflow_worker:latest
+    environment:
+      VAULT_HOST: ${VAULT_HOST}
+      VAULT_PORT: ${VAULT_PORT}
+      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_PATH: ${VAULT_PATH}
