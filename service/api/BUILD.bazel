@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@aspect_rules_py//py:defs.bzl", "py_library", "py_binary")
-load("@rules_oci//oci:defs.bzl", "oci_load")
+load("@rules_oci//oci:defs.bzl", "oci_load", "oci_push")
 load("@third_party_deps//:requirements.bzl", "requirement")
 load("//:py_layer.bzl", "py_oci_image")
 
@@ -68,5 +68,12 @@ platform_transition_filegroup(
 oci_load(
     name = "service_api_load",
     image = ":service_api_image",
-    repo_tags = ["gcr.io/oci_python_service_api_run:latest"],
+    repo_tags = ["ghcr.io/bochap-learning/bazel-temporal-fastapi/service_api:latest"],
+)
+
+oci_push(
+    name = "service_api_push",
+    image = ":service_api_image",
+    repository = "ghcr.io/bochap-learning/bazel-temporal-fastapi/service_api",
+    remote_tags = ["latest"]
 )

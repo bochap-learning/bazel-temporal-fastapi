@@ -105,7 +105,26 @@ This application, built in less than a week, serves as a proof-of-concept, showc
 
 ### Prerequisites
 
-To simplify application startup, an .env file is utilized to store environment variables. This file provides necessary configurations for both the application itself and its associated Docker Compose setup. To run this application, the .env file will need to be created. The format and variables required can be found in [.env.template](.env.template) 
+The application makes use of supporting services for relational data (Postgres), blob (Minio), secrets (Vault) and workflow management (Temporal/ Postgres). Configuration and access information used for setting up the services are provided in an `.env` file. The format and variables required can be found in [.env.template](.env.template). The `.env` file should be placed in [config/docker/vault-seed](config/docker/vault-seed)
+
+
+### Building
+
+The application is broken into 3 different parts during the build process. The 3 parts are
+
+1. External dependencies used by application code
+This part generates the `requirements_lock.txt` and `MODULE.bazel.lock` file, this is platform dependant since the packages used in Linux and MacOS is different and are not compatible. When building docker images the command should be ran on a Linux host. [^2]
+```
+bazel run //:requirements.update
+```
+2. Shared code used by all application services
+```
+bazel build //library/...
+```
+3. Application services (API and Temporal workers)
+```
+bazel build //service/...
+```
 
 ### Running
 
