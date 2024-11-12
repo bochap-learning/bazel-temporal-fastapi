@@ -99,5 +99,13 @@ platform_transition_filegroup(
 oci_load(
     name = "service_zipcode_workflow_worker_load",
     image = ":service_zipcode_workflow_worker_image",
-    repo_tags = ["gcr.io/oci_python_service_zipcode_workflow_worker:latest"],
+    repo_tags = ["ghcr.io/bochap-learning/bazel-temporal-fastapi/service_zipcode_workflow_worker:latest"],
 )
+
+oci_push(
+    name = "service_zipcode_workflow_worker_push",
+    image = ":service_zipcode_workflow_worker_image",
+    repository = "ghcr.io/bochap-learning/bazel-temporal-fastapi/service_zipcode_workflow_worker",
+    remote_tags = ["latest"]
+)
+
