@@ -31,5 +31,6 @@ services:
     depends_on:
       - vault
       - minio
+      - minio_mc
       - api_db
       - temporal    
